@@ -47,8 +47,8 @@ jobs:
           cache: maven
 
       - name: Dar permissao ao Maven Wrapper
-	workin-directory: backend
-	run: chmod +x mvnw 
+        working-directory: backend
+        run: chmod +x mvnw
 
       - name: Testar backend
         working-directory: backend
