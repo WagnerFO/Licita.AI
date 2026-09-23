@@ -46,6 +46,10 @@ jobs:
           java-version: '21'
           cache: maven
 
+      - name: Dar permissao ao Maven Wrapper
+	workin-directory: backend
+	run: chmod +x mvnw 
+
       - name: Testar backend
         working-directory: backend
         run: ./mvnw clean test
