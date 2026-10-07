@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}Contrato {{ contrato['numero'] }}{% endblock %}
+{% block conteudo %}
+{% set sit = situacao_do_contrato(contrato['data_fim']) %}
+<div class="cabecalho-pagina">
+  <h1>Contrato {{ contrato['numero'] }} <span class="selo selo-{{ sit[1] }}">{{ sit[0] }}</span></h1>
+  <div>
+    <a class="botao botao-secundario" href="{{ url_for('contratos.listar') }}">Voltar</a>
+    {% if g.usuario['perfil'] == 'admin' %}
+      <a class="botao" href="{{ url_for('contratos.editar', id_contrato=contrato['id']) }}">Editar</a>
+    {% endif %}
+  </div>
+</div>
+
+<section class="cartao">
+  <dl class="detalhes">
+    <dt>Empresa</dt><dd>{{ contrato['empresa'] }}</dd>
+    <dt>CNPJ</dt><dd>{{ contrato['cnpj'] }}</dd>
+    <dt>Processo licitatório</dt><dd>{{ contrato['processo_licitatorio'] }}</dd>
+    <dt>Modalidade</dt><dd>{{ contrato['modalidade'] }} {{ contrato['numero_modalidade'] or '' }}</dd>
+    <dt>Órgão gestor</dt><dd>{{ contrato['orgao_gestor'] }}</dd>
+    <dt>Secretário</dt><dd>{{ contrato['secretario'] or '—' }}</dd>
+    <dt>Valor total</dt><dd>{{ contrato['valor_total_centavos'] | moeda }}</dd>
+    <dt>Valor estimado</dt><dd>{{ contrato['valor_estimado_centavos'] | moeda }}</dd>
+    <dt>Assinatura</dt><dd>{{ contrato['data_assinatura'] | data_br }}</dd>
+    <dt>Fim da vigência</dt><dd>{{ contrato['data_fim'] | data_br }}</dd>
+    <dt>Prazo de vigência</dt>
+    <dd>{% if contrato['prazo_vigencia_meses'] %}{{ contrato['prazo_vigencia_meses'] }} meses{% else %}—{% endif %}</dd>
+    <dt>Resumo do objeto</dt><dd>{{ contrato['resumo_objeto'] }}</dd>
+    <dt>Objeto</dt><dd>{{ contrato['objeto'] }}</dd>
+  </dl>
+</section>
+{% endblock %}

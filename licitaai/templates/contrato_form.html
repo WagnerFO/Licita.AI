@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }}{% endblock %}
+
+{% macro campo(nome, rotulo, tipo="text", obrigatorio=True, tamanho=200) %}
+  <div class="campo {% if erros.get(nome) %}campo-erro{% endif %}">
+    <label for="{{ nome }}">{{ rotulo }}{% if obrigatorio %} *{% endif %}</label>
+    <input type="{{ tipo }}" id="{{ nome }}" name="{{ nome }}" maxlength="{{ tamanho }}"
+           value="{{ valores.get(nome, '') if valores.get(nome) is not none else '' }}"
+           {% if obrigatorio %}required{% endif %}>
+    {% if erros.get(nome) %}<span class="mensagem-erro">{{ erros[nome] }}</span>{% endif %}
+  </div>
+{% endmacro %}
+
+{% block conteudo %}
+<div class="cabecalho-pagina"><h1>{{ titulo }}</h1></div>
+
+<form method="post" class="cartao formulario" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="grade">
+    {{ campo("numero", "Número do contrato (ex.: 002/2023)", tamanho=30) }}
+    {{ campo("processo_licitatorio", "Processo licitatório (ex.: 103/2022)", tamanho=30) }}
+
+    <div class="campo {% if erros.get('modalidade') %}campo-erro{% endif %}">
+      <label for="modalidade">Modalidade de licitação *</label>
+      <select id="modalidade" name="modalidade" required>
+        <option value="">Selecione</option>
+        {% for m in modalidades %}
+          <option value="{{ m }}" {% if valores.get('modalidade') == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+      {% if erros.get('modalidade') %}<span class="mensagem-erro">{{ erros['modalidade'] }}</span>{% endif %}
+    </div>
+
+    {{ campo("numero_modalidade", "Número da modalidade", obrigatorio=False, tamanho=30) }}
+    {{ campo("empresa", "Empresa") }}
+    {{ campo("cnpj", "CNPJ", tamanho=18) }}
+    {{ campo("valor_total", "Valor total (R$)", tamanho=20) }}
+    {{ campo("valor_estimado", "Valor estimado (R$)", obrigatorio=False, tamanho=20) }}
+    {{ campo("data_assinatura", "Data de assinatura", tipo="date") }}
+    {{ campo("data_fim", "Data de fim da vigência", tipo="date") }}
+    {{ campo("prazo_vigencia_meses", "Prazo de vigência (meses)", tipo="number", obrigatorio=False, tamanho=3) }}
+    {{ campo("orgao_gestor", "Órgão gestor", tamanho=150) }}
+    {{ campo("secretario", "Secretário", obrigatorio=False, tamanho=150) }}
+  </div>
+
+  {{ campo("resumo_objeto", "Resumo do objeto") }}
+
+  <div class="campo {% if erros.get('objeto') %}campo-erro{% endif %}">
+    <label for="objeto">Objeto *</label>
+    <textarea id="objeto" name="objeto" rows="5" maxlength="5000" required>{{ valores.get('objeto', '') or '' }}</textarea>
+    {% if erros.get('objeto') %}<span class="mensagem-erro">{{ erros['objeto'] }}</span>{% endif %}
+  </div>
+
+  <div class="acoes">
+    <button type="submit" class="botao">Salvar</button>
+    <a class="botao botao-secundario" href="{{ url_for('contratos.listar') }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

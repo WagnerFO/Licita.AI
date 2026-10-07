@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block titulo %}Contratos{% endblock %}
+{% block conteudo %}
+<div class="cabecalho-pagina">
+  <div>
+    <h1>Contratos</h1>
+    <p class="ajuda">Clique em uma linha para ver os detalhes do contrato.</p>
+  </div>
+  {% if g.usuario['perfil'] == 'admin' %}
+    <a class="botao" href="{{ url_for('contratos.novo') }}">+ Novo contrato</a>
+  {% endif %}
+</div>
+
+<!-- Cartões de resumo (clicáveis: aplicam o filtro de situação) -->
+<section class="resumo">
+  <a class="resumo-card" href="{{ url_for('contratos.listar') }}">
+    <span class="resumo-numero">{{ resumo['total'] }}</span>
+    <span class="resumo-rotulo">Total de contratos</span>
+  </a>
+  <a class="resumo-card resumo-verde" href="{{ url_for('contratos.listar', situacao='no_prazo') }}">
+    <span class="resumo-numero">{{ resumo['no_prazo'] }}</span>
+    <span class="resumo-rotulo">No prazo</span>
+  </a>
+  <a class="resumo-card resumo-amarelo" href="{{ url_for('contratos.listar', situacao='a_vencer') }}">
+    <span class="resumo-numero">{{ resumo['a_vencer'] }}</span>
+    <span class="resumo-rotulo">Vencem em breve</span>
+  </a>
+  <a class="resumo-card resumo-vermelho" href="{{ url_for('contratos.listar', situacao='vencido') }}">
+    <span class="resumo-numero">{{ resumo['vencidos'] }}</span>
+    <span class="resumo-rotulo">Vencidos</span>
+  </a>
+</section>
+
+<form method="get" class="filtros">
+  <input type="search" name="q" value="{{ busca }}" maxlength="100"
+         placeholder="Buscar por número, empresa, processo ou objeto" aria-label="Buscar">
+  <select name="modalidade" aria-label="Modalidade">
+    <option value="">Todas as modalidades</option>
+    {% for m in modalidades %}
+      <option value="{{ m }}" {% if m == modalidade %}selected{% endif %}>{{ m }}</option>
+    {% endfor %}
+  </select>
+  <select name="situacao" aria-label="Situação">
+    <option value="">Todas as situações</option>
+    <option value="no_prazo" {% if situacao == 'no_prazo' %}selected{% endif %}>No prazo</option>
+    <option value="a_vencer" {% if situacao == 'a_vencer' %}selected{% endif %}>Vence em breve</option>
+    <option value="vencido" {% if situacao == 'vencido' %}selected{% endif %}>Vencido</option>
+  </select>
+  <button type="submit" class="botao">Filtrar</button>
+  <a class="botao botao-secundario" href="{{ url_for('contratos.listar') }}">Limpar</a>
+</form>
+
+<p class="ajuda">{{ total }} contrato(s) encontrado(s).</p>
+
+{% if contratos %}
+<div class="tabela-rolagem">
+<table class="tabela-contratos">
+  <thead>
+    <tr>
+      <th>Nº</th><th>Empresa</th><th>Resumo do objeto</th><th>Órgão gestor</th>
+      <th>Valor</th><th>Fim da vigência</th><th>Situação</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for c in contratos %}
+    {% set sit = situacao_do_contrato(c['data_fim']) %}
+    <!-- os data-* abaixo alimentam o card lateral (app.js lê esses atributos) -->
+    <tr class="linha-contrato" tabindex="0"
+        data-numero="{{ c['numero'] }}"
+        data-situacao="{{ sit[0] }}" data-classe="{{ sit[1] }}" data-prazo="{{ sit[2] }}"
+        data-empresa="{{ c['empresa'] }}" data-cnpj="{{ c['cnpj'] }}"
+        data-processo="{{ c['processo_licitatorio'] }}"
+        data-modalidade="{{ c['modalidade'] }} {{ c['numero_modalidade'] or '' }}"
+        data-orgao="{{ c['orgao_gestor'] }}" data-secretario="{{ c['secretario'] or '' }}"
+        data-valor="{{ c['valor_total_centavos'] | moeda }}"
+        data-estimado="{{ c['valor_estimado_centavos'] | moeda }}"
+        data-assinatura="{{ c['data_assinatura'] | data_br }}"
+        data-fim="{{ c['data_fim'] | data_br }}"
+        data-vigencia="{% if c['prazo_vigencia_meses'] %}{{ c['prazo_vigencia_meses'] }} meses{% endif %}"
+        data-resumo="{{ c['resumo_objeto'] }}" data-objeto="{{ c['objeto'] }}"
+        data-url-detalhe="{{ url_for('contratos.detalhe', id_contrato=c['id']) }}"
+        {% if g.usuario['perfil'] == 'admin' %}data-url-editar="{{ url_for('contratos.editar', id_contrato=c['id']) }}"{% endif %}>
+      <td class="col-numero">{{ c['numero'] }}</td>
+      <td>{{ c['empresa'] }}</td>
+      <td class="col-resumo">{{ c['resumo_objeto'] }}</td>
+      <td>{{ c['orgao_gestor'] }}</td>
+      <td class="col-valor">{{ c['valor_total_centavos'] | moeda }}</td>
+      <td>{{ c['data_fim'] | data_br }}</td>
+      <td><span class="selo selo-{{ sit[1] }}">{{ sit[0] }}</span></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if total_paginas > 1 %}
+<nav class="paginacao" aria-label="Paginação">
+  {% if pagina > 1 %}
+    <a href="{{ url_for('contratos.listar', q=busca, modalidade=modalidade, situacao=situacao, pagina=pagina-1) }}">← Anterior</a>
+  {% endif %}
+  <span>Página {{ pagina }} de {{ total_paginas }}</span>
+  {% if pagina < total_paginas %}
+    <a href="{{ url_for('contratos.listar', q=busca, modalidade=modalidade, situacao=situacao, pagina=pagina+1) }}">Próxima →</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% else %}
+  <div class="vazio">Nenhum contrato encontrado.</div>
+{% endif %}
+
+<!-- Card lateral (preenchido pelo app.js) -->
+<div id="fundo-painel" class="fundo-painel" hidden></div>
+<aside id="painel" class="painel" role="dialog" aria-modal="true" aria-labelledby="painel-titulo" aria-hidden="true">
+  <div class="painel-topo">
+    <div>
+      <h2 id="painel-titulo"></h2>
+      <span id="painel-selo" class="selo"></span>
+      <span id="painel-prazo" class="painel-prazo"></span>
+    </div>
+    <button type="button" id="painel-fechar" class="painel-fechar" aria-label="Fechar">&times;</button>
+  </div>
+
+  <div class="painel-corpo">
+    <p class="painel-valor" data-campo="valor"></p>
+    <dl class="painel-lista">
+      <dt>Empresa</dt><dd data-campo="empresa"></dd>
+      <dt>CNPJ</dt><dd data-campo="cnpj"></dd>
+      <dt>Processo licitatório</dt><dd data-campo="processo"></dd>
+      <dt>Modalidade</dt><dd data-campo="modalidade"></dd>
+      <dt>Órgão gestor</dt><dd data-campo="orgao"></dd>
+      <dt>Secretário</dt><dd data-campo="secretario"></dd>
+      <dt>Valor estimado</dt><dd data-campo="estimado"></dd>
+      <dt>Assinatura</dt><dd data-campo="assinatura"></dd>
+      <dt>Fim da vigência</dt><dd data-campo="fim"></dd>
+      <dt>Prazo de vigência</dt><dd data-campo="vigencia"></dd>
+      <dt>Objeto</dt><dd data-campo="objeto"></dd>
+    </dl>
+  </div>
+
+  <div class="painel-acoes">
+    <a id="painel-ver" class="botao" href="#">Ver página completa</a>
+    <a id="painel-editar" class="botao botao-secundario" href="#" hidden>Editar</a>
+  </div>
+</aside>
+{% endblock %}

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Licita.AI{% endblock %} - Licita.AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topo">
+    <a class="marca" href="{{ url_for('inicio') }}"><span class="marca-icone">L</span><span class="marca-texto">Licita<em>.AI</em></span></a>
+    {% if g.usuario %}
+    <nav>
+      <a href="{{ url_for('contratos.listar') }}">Contratos</a>
+      <span class="usuario">{{ g.usuario['nome'] }} ({{ g.usuario['perfil'] }})</span>
+      <form method="post" action="{{ url_for('auth.logout') }}" class="form-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="botao botao-secundario">Sair</button>
+      </form>
+    </nav>
+    {% endif %}
+  </header>
+
+  <main class="conteudo">
+    {% for categoria, mensagem in get_flashed_messages(with_categories=true) %}
+      <div class="alerta alerta-{{ categoria }}" role="alert">{{ mensagem }}</div>
+    {% endfor %}
+    {% block conteudo %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
