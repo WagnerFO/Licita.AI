@@ -45,7 +45,7 @@ API: http://localhost:8080
 Swagger UI: http://localhost:8080/swagger-ui.html
 OpenAPI JSON: http://localhost:8080/v3/api-docs
 
-O banco inicia sem usuários ou contratos de exemplo. Dados reais não são inseridos automaticamente.
+O banco inicia sem usuários ou contratos de exemplo. Para criar o primeiro administrador sem adicionar dados de exemplo ao código, defina antes de iniciar o backend as variáveis LICITAAI_ADMIN_NOME, LICITAAI_ADMIN_EMAIL e LICITAAI_ADMIN_PASSWORD. O usuário só é criado quando essas variáveis forem fornecidas explicitamente.
 
 ## Migração
 
