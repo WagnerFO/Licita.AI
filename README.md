@@ -12,7 +12,7 @@ O Licita.AI tem como objetivo organizar em uma única aplicação as principais 
 
 ### Frontend
 
-- Angular 22
+- Angular 22.2
 - TypeScript
 - SCSS
 - RxJS
@@ -20,7 +20,7 @@ O Licita.AI tem como objetivo organizar em uma única aplicação as principais 
 ### Backend
 
 - Java 21
-- Spring Boot 4
+- Spring Boot 4.1.1
 - Spring Web MVC
 - Spring Security
 - Spring Data JPA
@@ -145,7 +145,7 @@ As configurações podem ser sobrescritas no backend pelas variáveis:
 
 ### 2. Criar o primeiro administrador
 
-O banco inicia sem usuários ou contratos de exemplo.
+Em uma instalação nova, o banco inicia sem usuários ou contratos de exemplo. Se o volume do PostgreSQL já existir, os dados anteriores são preservados.
 
 Para criar o primeiro administrador, defina as variáveis de ambiente antes de iniciar o backend.
 
@@ -192,7 +192,7 @@ Em outro terminal:
 
 ```cmd
 cd frontend
-npm install
+npm ci
 npm start
 ```
 
