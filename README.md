@@ -2,6 +2,8 @@
 
 Sistema web para centralização, consulta e gerenciamento das informações de contratos e processos licitatórios da Prefeitura Municipal de Vitória de Santo Antão.
 
+**Novo por aqui?** Veja também o [Guia de instalação, diagnóstico e suporte com IA](docs/GUIA_INSTALACAO_E_SUPORTE_IA.md). Ele pode ser enviado a outra IA para ajudar com a instalação em outra máquina.
+
 ## Objetivo
 
 O Licita.AI tem como objetivo organizar em uma única aplicação as principais informações relacionadas aos contratos e processos licitatórios, facilitando o cadastro, a consulta, o acompanhamento de prazos e a localização dos dados.
@@ -88,15 +90,33 @@ Licita.AI/
 
 ## Pré-requisitos
 
-Para executar o projeto localmente, recomenda-se:
+Para executar o projeto localmente, instale:
 
-- Git;
-- Java 21;
-- Docker com Docker Compose;
-- Node.js 22;
-- npm.
+- **Git**;
+- **JDK Java 21** (não apenas o JRE);
+- **Node.js 22** com **npm**;
+- **Docker Desktop** com Docker Compose (no Windows, abra o Docker Desktop antes de iniciar o banco);
+- Opcional: IntelliJ IDEA para Java e VS Code para Angular.
 
-O Maven Wrapper já está incluído no backend, portanto não é necessário instalar o Maven globalmente.
+O Maven Wrapper está incluído no backend; não é necessário instalar Maven globalmente.
+
+### Conferir a instalação das ferramentas
+
+No **CMD ou PowerShell do Windows**, execute:
+
+~~~cmd
+git --version
+java -version
+node --version
+npm --version
+docker --version
+docker compose version
+docker info
+~~~
+
+Verifique **Java 21**, **Node.js 22** e se `docker info` consegue se comunicar com o Docker. Se o daemon estiver indisponível, abra o Docker Desktop e confirme que iniciou corretamente.
+
+Para instruções detalhadas e assistência com erros, consulte o [guia de instalação e suporte com IA](docs/GUIA_INSTALACAO_E_SUPORTE_IA.md).
 
 ## Clonando o projeto
 
@@ -119,88 +139,139 @@ O esperado é:
 * develop
 ```
 
-## Executando localmente
+## Executando localmente (Windows)
+
+As etapas abaixo começam na **raiz do projeto `Licita.AI`** após o clone.
 
 ### 1. Iniciar o PostgreSQL
 
-Na raiz do projeto:
+Abra o Docker Desktop. Em um terminal, na **raiz do repositório**, execute:
 
-```bash
+~~~cmd
 docker compose up -d
-```
+docker compose ps
+~~~
 
-O ambiente local utiliza, por padrão:
+O serviço `postgres`/container `licita-postgres` deve aparecer em execução. O ambiente local utiliza:
 
-```text
+~~~text
 Banco:   licita_ai
 Usuário: licita
 Porta:   5432
-```
+~~~
 
-As configurações podem ser sobrescritas no backend pelas variáveis:
+A configuração está no arquivo `docker-compose.yml`. O backend lê os valores padrão de `application.properties`; é possível sobrescrever a conexão usando as variáveis `DB_URL`, `DB_USER` e `DB_PASSWORD`.
 
-- `DB_URL`;
-- `DB_USER`;
-- `DB_PASSWORD`.
+**Atenção:** a configuração do Compose é apenas para desenvolvimento local. O volume do banco preserva os dados entre reinícios. Não execute `docker compose down -v` para resolver um erro sem verificar o impacto: isso pode eliminar o banco de desenvolvimento.
 
-### 2. Criar o primeiro administrador
+### 2. Criar o primeiro administrador (instalação nova)
 
-Em uma instalação nova, o banco inicia sem usuários ou contratos de exemplo. Se o volume do PostgreSQL já existir, os dados anteriores são preservados.
+O banco inicia **sem usuário ou contrato de exemplo**. Antes de iniciar o backend pela primeira vez, informe os dados do primeiro administrador **no mesmo terminal em que executará o Spring Boot**.
 
-Para criar o primeiro administrador, defina as variáveis de ambiente antes de iniciar o backend.
+**CMD do Windows:**
 
-No CMD do Windows:
-
-```cmd
+~~~cmd
 set LICITAAI_ADMIN_NOME=Administrador
 set LICITAAI_ADMIN_EMAIL=seu-email@exemplo.com
-set LICITAAI_ADMIN_PASSWORD=sua-senha-segura
-```
+set LICITAAI_ADMIN_PASSWORD=coloque-aqui-uma-senha-segura
+~~~
 
-A senha deve possuir pelo menos 10 caracteres.
+**PowerShell do Windows:**
 
-O administrador é criado somente se as variáveis forem informadas e ainda não existir um usuário com o mesmo e-mail.
+~~~powershell
+$env:LICITAAI_ADMIN_NOME = "Administrador"
+$env:LICITAAI_ADMIN_EMAIL = "seu-email@exemplo.com"
+$env:LICITAAI_ADMIN_PASSWORD = "coloque-aqui-uma-senha-segura"
+~~~
 
-### 3. Iniciar o backend
+Substitua o e-mail e a senha de exemplo pelos seus. **A senha precisa conter ao menos 10 caracteres.** O usuário é criado apenas se essas variáveis estiverem informadas e não existir cadastro com o mesmo e-mail.
 
-```cmd
+Se iniciar o backend pelo **IntelliJ IDEA**, configure essas variáveis em **Run Configuration > Environment variables**. Não presuma que a IDE utilizará variáveis definidas em um CMD separado.
+
+As variáveis usadas nos exemplos existem somente na sessão atual do terminal; não há credenciais de login universais publicadas neste repositório.
+
+### 3. Iniciar o backend (Spring Boot)
+
+No terminal com as variáveis de administrador, entre na pasta `backend` e execute:
+
+**Windows (CMD ou PowerShell):**
+
+~~~cmd
 cd backend
 .\mvnw.cmd spring-boot:run
-```
+~~~
 
-Backend:
+**Linux/macOS (shell):**
 
-```text
-http://localhost:8080
-```
+~~~bash
+cd backend
+./mvnw spring-boot:run
+~~~
 
-Swagger UI:
+Mantenha o terminal aberto. O Flyway aplica automaticamente as migrations pendentes no PostgreSQL; o Hibernate valida a estrutura do banco.
 
-```text
-http://localhost:8080/swagger-ui.html
-```
+Verifique os endereços:
 
-OpenAPI JSON:
+| Serviço | URL |
+|---|---|
+| Status do backend | http://localhost:8080/api/status |
+| Swagger UI | http://localhost:8080/swagger-ui.html |
+| OpenAPI JSON | http://localhost:8080/v3/api-docs |
 
-```text
-http://localhost:8080/v3/api-docs
-```
+O endereço de status deve retornar um JSON com `"status":"OK"` e `"application":"Licita.AI"`.
 
-### 4. Iniciar o frontend
+Para testar pelo terminal:
 
-Em outro terminal:
+~~~cmd
+curl http://localhost:8080/api/status
+~~~
 
-```cmd
-cd frontend
+Se retornar um erro de conexão, verifique o console do Spring Boot e se a porta 8080 está livre.
+
+### 4. Iniciar o frontend (Angular)
+
+Abra **um segundo terminal** diretamente na pasta `Licita.AI/frontend` (não na pasta `backend`) e execute:
+
+~~~cmd
 npm ci
 npm start
-```
+~~~
 
-Frontend:
+Acesse:
 
-```text
-http://localhost:4200
-```
+- Aplicação: http://localhost:4200
+- Login: http://localhost:4200/login
+
+Entre usando **o e-mail e a senha definidos na etapa 2**. Se o banco for novo, é normal a lista de contratos aparecer vazia.
+
+O comando `npm ci` instala as dependências do `package-lock.json`. Em execuções seguintes, normalmente basta `npm start`, desde que as dependências não tenham sido alteradas.
+
+### 5. Verificar se tudo está funcionando
+
+1. `docker compose ps` mostra o banco em execução.
+2. O backend inicia sem erro de Flyway/JPA.
+3. `http://localhost:8080/api/status` retorna `OK`.
+4. O Swagger abre em `http://localhost:8080/swagger-ui.html`.
+5. O Angular abre em `http://localhost:4200/login`.
+6. O login com a conta criada abre a área de contratos.
+
+Instalar o código em outra máquina **não copia o banco de dados existente** de um computador anterior. Para demonstrações, utilize dados fictícios válidos.
+
+### 6. Problemas comuns
+
+| Problema | Primeira verificação |
+|---|---|
+| Docker não responde | Abra Docker Desktop e execute `docker info`. |
+| PostgreSQL não inicia | `docker compose ps` e `docker compose logs postgres --tail=80`. |
+| Porta 5432 ocupada | `netstat -ano \| findstr :5432` no CMD. |
+| Backend não abre na porta 8080 | Confira o console do Spring e execute `netstat -ano \| findstr :8080`. |
+| Angular não abre | Confira `npm start`, Node 22 e a porta 4200. |
+| Falha no primeiro login | Confira as variáveis `LICITAAI_ADMIN_*` no processo do backend e se a conta já existia. |
+| Erro 401 ou 403 em contratos | Verifique autenticação/sessão e o perfil `ADMIN` ou `CONSULTA`. |
+| Erro do Flyway | Inspecione o erro e as migrations; **não** altere migrations já executadas nem apague volumes como primeira solução. |
+
+**Guia completo para outra máquina ou para pedir ajuda a uma IA:** [docs/GUIA_INSTALACAO_E_SUPORTE_IA.md](docs/GUIA_INSTALACAO_E_SUPORTE_IA.md).
+
 
 ## API principal
 
