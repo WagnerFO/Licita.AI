@@ -49,6 +49,15 @@ public class ContratoService {
     @Transactional(readOnly=true)
     public ContratoResponse buscar(Long id){return toResponse(entidade(id));}
 
+    @Transactional(readOnly=true)
+    public boolean numeroEmUso(String numero, Long ignorarId){
+    String n = numero == null ? "" : numero.trim();
+    if (n.isEmpty()) return false;
+    return ignorarId == null
+        ? repository.existsByNumeroIgnoreCase(n)
+        : repository.existsByNumeroIgnoreCaseAndIdNot(n, ignorarId);
+    }
+
     @Transactional
     public ContratoResponse criar(ContratoRequest req){
         validar(req,null);
