@@ -1,1 +1,20 @@
-<header class="topbar"><a class="brand" routerLink="/contratos"><span class="brand-icon">L</span><span>Licita<em>.AI</em></span></a>@if(auth.usuario()){<nav><a routerLink="/contratos">Contratos</a><span>{{auth.usuario()?.nome}} ({{auth.usuario()?.perfil}})</span><button class="btn secondary" (click)="sair()">Sair</button></nav>}</header><main class="content"><router-outlet /></main>
+<header class="topbar">
+  <a class="brand" routerLink="/contratos" aria-label="Licita.AI — página inicial">
+    <span class="brand-icon" aria-hidden="true">L</span>
+    <span class="brand-texto">
+      <span class="brand-nome">Licita<em>.AI</em></span>
+      <span class="brand-sub">Prefeitura de Vitória de Santo Antão</span>
+    </span>
+  </a>
+  @if (auth.usuario(); as u) {
+    <nav aria-label="Principal">
+      <a routerLink="/contratos" routerLinkActive="ativo">Contratos</a>
+      <span class="usuario">
+        <strong>{{ u.nome }}</strong>
+        <small>{{ u.perfil === 'ADMIN' ? 'Administrador' : 'Consulta' }}</small>
+      </span>
+      <button type="button" class="btn secundario no-topo" (click)="sair()">Sair</button>
+    </nav>
+  }
+</header>
+<main class="content"><router-outlet /></main>

@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/contratos")
@@ -15,6 +16,11 @@ public class ContratoController {
     @GetMapping
     public Page<ContratoResponse> listar(@RequestParam(required=false) String busca,@RequestParam(required=false) String modalidade,@RequestParam(required=false) String situacao,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="15") int size){
         return service.listar(busca,modalidade,situacao,page,size);
+    }
+    /** Usado pelo formulário para avisar, enquanto o usuário digita, que o número do contrato já existe. */
+    @GetMapping("/existe")
+    public Map<String,Boolean> existe(@RequestParam String numero,@RequestParam(required=false) Long ignorarId){
+        return Map.of("existe",service.numeroEmUso(numero,ignorarId));
     }
     @GetMapping("/{id}") public ContratoResponse buscar(@PathVariable Long id){return service.buscar(id);}
     @PostMapping @ResponseStatus(HttpStatus.CREATED) public ContratoResponse criar(@Valid @RequestBody ContratoRequest req){return service.criar(req);}

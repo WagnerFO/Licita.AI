@@ -20,7 +20,12 @@ public class ContratoService {
     public static final int DIAS_ALERTA=60;
     public static final Set<String> MODALIDADES=Set.of("Adesão a Ata","Ata de Registro de Preço","Chamada Publica","Concorrência Publica","Dispensa","Inexigibilidade","Pregão Eletrônico","Processo Administrativo","Tomada de Preço");
     private final ContratoRepository repository;
-    public ContratoService(ContratoRepository repository){this.repository=repository;}
+    private final AuditoriaService auditoria;
+
+    public ContratoService(ContratoRepository repository, AuditoriaService auditoria){
+        this.repository=repository;
+        this.auditoria=auditoria;
+    }
 
     @Transactional(readOnly=true)
     public Page<ContratoResponse> listar(String busca,String modalidade,String situacao,int page,int size){
@@ -44,15 +49,32 @@ public class ContratoService {
     @Transactional(readOnly=true)
     public ContratoResponse buscar(Long id){return toResponse(entidade(id));}
 
+    @Transactional(readOnly=true)
+    public boolean numeroEmUso(String numero, Long ignorarId){
+    String n = numero == null ? "" : numero.trim();
+    if (n.isEmpty()) return false;
+    return ignorarId == null
+        ? repository.existsByNumeroIgnoreCase(n)
+        : repository.existsByNumeroIgnoreCaseAndIdNot(n, ignorarId);
+    }
+
     @Transactional
     public ContratoResponse criar(ContratoRequest req){
         validar(req,null);
-        Contrato c=new Contrato(); aplicar(c,req); return toResponse(repository.save(c));
+        Contrato c=new Contrato(); aplicar(c,req);
+        Contrato salvo=repository.save(c);
+        auditoria.registrarCriacao("CONTRATO",salvo.getId());
+        return toResponse(salvo);
     }
 
     @Transactional
     public ContratoResponse atualizar(Long id,ContratoRequest req){
-        Contrato c=entidade(id); validar(req,id); aplicar(c,req); return toResponse(repository.save(c));
+        Contrato c=entidade(id); validar(req,id);
+        Map<String,String> antes=ContratoSnapshot.de(c);   // foto ANTES de aplicar as mudanças
+        aplicar(c,req);
+        Contrato salvo=repository.save(c);
+        auditoria.registrarAtualizacao("CONTRATO",salvo.getId(),antes,ContratoSnapshot.de(salvo));
+        return toResponse(salvo);
     }
 
     private Contrato entidade(Long id){return repository.findById(id).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Contrato não encontrado."));}
