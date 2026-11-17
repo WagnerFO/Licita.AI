@@ -1,12 +1,12 @@
 # Licita.AI
 
-Sistema web para centralização, consulta e gerenciamento das informações de contratos e processos licitatórios da Prefeitura Municipal de Vitória de Santo Antão.
+Sistema web B2G para centralização, consulta e gerenciamento das informações de contratos e processos licitatórios de prefeituras e demais órgãos públicos.
 
 **Novo por aqui?** Veja também o [Guia de instalação, diagnóstico e suporte com IA](docs/GUIA_INSTALACAO_E_SUPORTE_IA.md). Ele pode ser enviado a outra IA para ajudar com a instalação em outra máquina.
 
 ## Objetivo
 
-O Licita.AI tem como objetivo organizar em uma única aplicação as principais informações relacionadas aos contratos e processos licitatórios, facilitando o cadastro, a consulta, o acompanhamento de prazos e a localização dos dados.
+O Licita.AI tem como objetivo organizar em uma única aplicação as principais informações relacionadas aos contratos e processos licitatórios, facilitando o cadastro, a consulta, o acompanhamento de prazos e a localização dos dados. A solução é direcionada a órgãos públicos que realizam licitações e contratações, sem vínculo com um município específico.
 
 > Nesta etapa, o sistema armazena apenas informações estruturadas dos contratos e processos licitatórios. Arquivos PDF, DOC ou outros documentos dos contratos não fazem parte do armazenamento da aplicação.
 
